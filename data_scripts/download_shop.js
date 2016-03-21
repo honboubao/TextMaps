@@ -41,7 +41,7 @@ RenderUrlsToFile = function(urls, output_path, prefix, callbackPerUrl, callbackF
     }
 
     getListPath = function(output_path, prefix){
-        return output_path+'/page_sets/'+prefix+".txt"
+        return output_path+'/downloaded_pages/'+prefix+".txt"
     }
 
     formatNumberLength = function(num, length) {
@@ -109,7 +109,7 @@ RenderUrlsToFile = function(urls, output_path, prefix, callbackPerUrl, callbackF
                 // IT HAS BOUNDINGCLIENTRECT
                 if(typeof element.getBoundingClientRect === 'function') {
                     bb = element.getBoundingClientRect()
-                    node.position = bb
+                    node.position = [Math.round(bb.left), Math.round(bb.top), Math.round(bb.right), Math.round(bb.bottom)]
                 // TRY TO COMPUTE IT
                 }else{
                     bb = null
@@ -117,7 +117,7 @@ RenderUrlsToFile = function(urls, output_path, prefix, callbackPerUrl, callbackF
                     range.selectNodeContents(element);
                     bb = range.getBoundingClientRect();
                     if (bb){
-                        node.position = bb
+                        node.position = [Math.round(bb.left), Math.round(bb.top), Math.round(bb.right), Math.round(bb.bottom)]
                     }
                 }
             }catch(err){} 
