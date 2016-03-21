@@ -5,7 +5,7 @@
 - phantomjs
 - python
 
-## Downloading data from eshop
+## Download product pages from eshop
 Run following script:
 
 ```Shell
@@ -24,12 +24,12 @@ Script creates new directory "labeled_dom_trees" which contains copy of DOM tree
 
 We review labeled results by checking image patches of labeled elements. The process is divided into 3 steps - prepare labeled patches, review them, remove them.
 
-*Step 1: 
+### Step 1: Prepare patches
     ```Shell
     python review.py prepare [prefix]
     ```
 
-*Step 2:
+### Step 2: Review patches
     ```Shell
     python review.py review [prefix]
     ```
@@ -37,7 +37,7 @@ We review labeled results by checking image patches of labeled elements. The pro
 You can select wrongly labeled patches, in order to remove page from dataset. If everything goes right, the script creates new file in "page_sets" directory,
 which contains all pages that passed the review process.
 
-*Step 3:
+### Step 3: Remove patches
     ```Shell
     python review.py remove alza
     ```
