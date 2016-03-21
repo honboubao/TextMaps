@@ -39,5 +39,5 @@ which contains all pages that passed the review process.
 
 ### Step 3: Remove patches
 ```Shell
-python review.py remove alza
+python review.py remove [prefix]
 ```
