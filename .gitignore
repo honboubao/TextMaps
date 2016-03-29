@@ -2,4 +2,8 @@
 # it should be downloaded via FTP
 data_shops
 
-data_scripts/shop_list
+# urls working dir
+data_scripts/shop_urls
+
+
+*.DS_Store
