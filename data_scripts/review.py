@@ -66,6 +66,7 @@ def preparePatches(prefix):
     # for each page from prexix
     for page_ind in range(len(pages)):
         page = pages[page_ind]
+        print 'Creating patches for:', page
 
         # prepare paths
         dom_path = os.path.join(DOM_PATH, page+'.json')
@@ -82,6 +83,9 @@ def preparePatches(prefix):
                 label = LABELS[i]
                 patch = getPatch(im,labeled[label])
                 cv2.imwrite(os.path.join(PATCHES_PATH, page+'_'+label+'.jpeg'),patch)
+
+                ### Resize
+                ### Lower quality CV_IMWRITE_JPEG_QUALITY
 
                 ### TODO lower resolution
 
@@ -188,6 +192,8 @@ def removePatches(prefix):
 
     # for each page from prexix
     for page in pages:
+        print 'Removing:', page
+
         # for each label
         for i in range(len(LABELS)):
             label = LABELS[i]
