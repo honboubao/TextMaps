@@ -3,7 +3,7 @@ import cv2
 import sys
 import json
 import copy
-from enum import Enum
+#from enum import Enum
 import matplotlib.pyplot as plt
 
 #----- CLASS REPRESENTING PATH TO ELEMENT (IN DOM TREE)
@@ -26,7 +26,7 @@ class ElementPath:
         return s
 
 
-    class RootType(Enum):
+    class RootType:
         _dom_root = 1
         _id = 2
         _class = 3
