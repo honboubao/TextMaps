@@ -1,3 +1,5 @@
 # ignore data folder
 # it should be downloaded via FTP
 data_shops
+
+data_scripts/shop_list

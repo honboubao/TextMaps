@@ -9,8 +9,8 @@
 Run following script:
 
 ```Shell
-phantomjs download_shop.js [FILE_WITH_URL] [PATH_TO_DATA_DIR] [PREFIX]
-#example: phantomjs download_shop.js shop_urls/alza.txt ../data_shops alza) 
+phantomjs download_shop.js [PREFIX]
+#example: phantomjs download_shop.js www.grainger.com) 
 ```
 
 ## Semi-automatic labeling of DOM elements 

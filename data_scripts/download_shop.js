@@ -3,7 +3,7 @@
 // --- RENDERING PAGES --- //
 var RenderUrlsToFile, arrayOfUrls, system, fs;
 var xpaths = [];
-var MAX_WIDTH = 1200;
+var MAX_WIDTH = 1280;
 system = require("system");
 fs = require('fs');
 
@@ -166,7 +166,7 @@ RenderUrlsToFile = function(urls, output_path, prefix, callbackPerUrl, callbackF
             page = webpage.create();
             page.viewportSize = {
                 width: MAX_WIDTH,
-                height: 1000
+                height: 800
             };
 
             page.settings.userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X) AppleWebKit/538.1 (KHTML, like Gecko) PhantomJS/2.0.0 Safari/538.1; CVUT-Cloud_Computing_Center BOT (http://3c.felk.cvut.cz/bot/)"
@@ -182,21 +182,31 @@ RenderUrlsToFile = function(urls, output_path, prefix, callbackPerUrl, callbackF
                 dom_tree_path = getDOMPath(output_path, prefix,urlIndex);
                 html_path = getHTMLPath(output_path, prefix,urlIndex);
                 list_path = getListPath(output_path,prefix);
-
                 
-
                 //succeded
                 if (status === "success") {
                 
                     //after 200 ms - press ESCAPE
                     window.setTimeout((function() {
                         page.sendEvent('keypress', page.event.key.Escape);
-                    }), 400);
+                        page.sendEvent('click', 1199, 1, button='left');
+                    }), 1000);
 
                      //after 300 ms - start parsing and rendering
                     return window.setTimeout((function() {
                             var html = page.content
                             var dom_tree = page.evaluate(getDOMTree);
+
+                            // before rendering
+                            // add white background in order to override black jpeg default
+                            page.evaluate(function() {
+                              var style = document.createElement('style'),
+                                  text = document.createTextNode('body { background: #ffffff }');
+                              style.setAttribute('type', 'text/css');
+                              style.appendChild(text);
+                              document.head.insertBefore(style, document.head.firstChild);
+                            });
+
                             page.render(image_path,{format: 'jpeg', quality: '100'});
                             return next(status, url, pageID, dom_tree_path, html_path, list_path, dom_tree, html);
                     }), 1000);
@@ -258,12 +268,15 @@ callbackFinal = function() {
 
 // --- READ PARAMS --- //
 arrayOfUrls = null;
-if (system.args.length == 4) {
-    var input_path = system.args[1];
-    var output_path = system.args[2];
-    var prefix = system.args[3];
+if (system.args.length == 2) {
+    // var input_path = system.args[1];
+    // var output_path = system.args[2];
+    // var prefix = system.args[3];
+    var prefix = system.args[1];
+    var input_path = "../data_shops/shop_urls/"+prefix+".txt"
+    var output_path = "../data_shops"
 } else {
-    console.log("Usage: phantomjs download_shop.js SHOP_LIST OUTPUT_PATH PREFIX");
+    console.log("Usage: phantomjs download_shop.js PREFIX");
     phantom.exit(1);
 }
 

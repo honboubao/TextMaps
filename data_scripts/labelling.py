@@ -49,7 +49,7 @@ class DOMTree:
         copied_root = copy.deepcopy(self.root)
 
         # auxiliary fields shall be removed
-        fields_to_remove = ['parent', 'localName', 'prunedChildNodes']
+        fields_to_remove = ['parent', 'localName', 'prunedChildNodes', 'visibleBox']
 
         processing_stack = []
         processing_stack.append(copied_root)
@@ -95,8 +95,6 @@ class DOMTree:
             if 'class' in attrs:
                 for _cls in attrs['class'].split():
                     if _cls in self.unique_classes:
-                        if _cls=='alza':
-                            print 'alza in uniques:('
                         paths.append(ElementPath(ElementPath.RootType._class, root=_cls))
         
         ## if it has not parent -> it is a root
@@ -164,6 +162,18 @@ class DOMTree:
         # last node is a result
         return node
 
+    def intersection(self, box1, box2):
+        inter_l = max(box1[0],box2[0])
+        inter_r = min(box1[2],box2[2])
+        inter_t = max(box1[1],box2[1])
+        inter_b = min(box1[3],box2[3])
+
+        intersect = (inter_l < inter_r) and (inter_t < inter_b)
+
+        if not intersect:
+            return [0,0,0,0]
+        else:
+            return [inter_l, inter_t, inter_r, inter_b]
 
     def addAdditionalInfo(self):
         self.unique_ids = {}
@@ -178,6 +188,35 @@ class DOMTree:
 
         while len(processing_stack)!=0:
             node = processing_stack.pop()
+
+            ###------ Visible boxes
+
+            # # get visible container from parent
+            # parentBox = None
+            # if 'parent' in node and 'visibleBox' in node['parent']:
+            #     parentBox = node['parent']['visibleBox']
+
+            # # get position of node
+            # nodePosition = None
+            # if 'position' in node:
+            #     nodePosition = node['position']
+
+            # visibleBox = None
+            # if parentBox:   # we have parent box
+            #     if nodePosition:    # we have position -> intersect
+            #         visibleBox = self.intersection(parentBox, nodePosition)
+            #     else:   # we have no position -> take box of parent
+            #         visibleBox = parentBox
+            # else:
+            #     if nodePosition:    # we have only position
+            #         visibleBox = nodePosition
+            #     else:      # we do not have anything
+            #         visibleBox = None
+
+            # node['visibleBox'] = visibleBox
+
+            ###------ IDS and Classes
+
             # if node has some attributes
             if 'attrs' in node:
                 attrs = node['attrs']
@@ -201,6 +240,8 @@ class DOMTree:
                         else:
                             classes_to_delete.add(_cls)
                             # del self.unique_classes[_cls]
+
+            ###------ Children processing
 
             # if node has children, process and follow them
             if 'childNodes' in node:
@@ -253,7 +294,7 @@ class DOMTree:
 
                 for childNode in childNodes:
                     ### REMOVE EMPTY TEXT NODES
-                    if (childNode['type']==3) and (not childNode['value'].strip()):
+                    if (childNode['type']==3) and ('value' in childNode) and (not childNode['value'].strip()):
                         continue
 
                     ### REMOVE ELEMENTS NON TEXT ELEMENTS WHICH DO NOT HAVE COMPUTED STYLE
@@ -301,8 +342,8 @@ class ElementSelector:
 
     def selectElement(self):
         ## CROP IMAGE
-        crop_top = 1500
-        self.fig = plt.figure(figsize=(10,15))
+        crop_top = 900
+        self.fig = plt.figure(figsize=(10,8))
         im = cv2.imread(self.image_path)
         im = im[:crop_top,:,:]
 
@@ -310,6 +351,7 @@ class ElementSelector:
 
         ## FIND LEAVES WITH POSITION
         processing_stack = []
+        patches = []
         # res_text = []
         # res_others = []
 
@@ -319,7 +361,7 @@ class ElementSelector:
 
             # if it has children follow them
             if 'childNodes' in node:
-                for childNode in node['childNodes']:
+                for childNode in node['prunedChildNodes']:
                     processing_stack.append(childNode)
             # if we have not children and element has non zero position
             else:
@@ -331,7 +373,30 @@ class ElementSelector:
                     else:    
                         patch = plt.Rectangle((position[0], position[1]), position[2]-position[0],position[3]-position[1], fill=False, edgecolor='b', linewidth=1, picker=5)
                     patch.node = node
-                    plt.gca().add_patch(patch)
+
+                    # compute size
+                    size = (position[2]-position[0])*(position[3]-position[1])
+                    # add to patch list
+                    patches.append((patch,size))
+
+                # if 'visibleBox' in node and ((node['visibleBox'][2]-node['visibleBox'][0])*(node['visibleBox'][3]-node['visibleBox'][1]) != 0):
+                #     position = node['visibleBox']
+                #     if node['type']==3:
+                #         # res_text.append(node)    # add it
+                #         patch = plt.Rectangle((position[0], position[1]), position[2]-position[0],position[3]-position[1], fill=False, edgecolor='g', linewidth=1, picker=5)
+                #     else:    
+                #         patch = plt.Rectangle((position[0], position[1]), position[2]-position[0],position[3]-position[1], fill=False, edgecolor='b', linewidth=1, picker=5)
+                #     patch.node = node
+
+                #     # compute size
+                #     size = (position[2]-position[0])*(position[3]-position[1])
+                #     # add to patch list
+                #     patches.append((patch,size))
+
+
+        patches.sort(key=lambda tup: tup[1], reverse=True)  # sorts in place
+        for (patch,size) in patches:
+            plt.gca().add_patch(patch)
 
         self.fig.canvas.mpl_connect('pick_event', self.onPick)
         self.fig.canvas.mpl_connect('key_press_event', self.keyPress)
@@ -401,9 +466,17 @@ if __name__ == "__main__":
         # load dom tree
         dom = DOMTree(dom_path)
         
+        # get price
         price_succes = findAndLabel(dom, page_image_path, 'price', price_paths)
-        main_image_succes = findAndLabel(dom, page_image_path, 'main_image', main_image_paths)
-        name_succes = findAndLabel(dom, page_image_path, 'name', name_paths)
+        
+        # if we got price, get main image
+        if price_succes:
+            main_image_succes = findAndLabel(dom, page_image_path, 'main_image', main_image_paths)
+        
+        # if we got both, try to get name
+        if price_succes and main_image_succes:
+            name_succes = findAndLabel(dom, page_image_path, 'name', name_paths)
+
 
         if price_succes and main_image_succes and name_succes:
             dom.saveTree(os.path.join(labeled_doms_path, page+'.json'))
