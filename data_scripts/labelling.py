@@ -162,19 +162,6 @@ class DOMTree:
         # last node is a result
         return node
 
-    def intersection(self, box1, box2):
-        inter_l = max(box1[0],box2[0])
-        inter_r = min(box1[2],box2[2])
-        inter_t = max(box1[1],box2[1])
-        inter_b = min(box1[3],box2[3])
-
-        intersect = (inter_l < inter_r) and (inter_t < inter_b)
-
-        if not intersect:
-            return [0,0,0,0]
-        else:
-            return [inter_l, inter_t, inter_r, inter_b]
-
     def addAdditionalInfo(self):
         self.unique_ids = {}
         self.unique_classes = {} 
@@ -188,32 +175,6 @@ class DOMTree:
 
         while len(processing_stack)!=0:
             node = processing_stack.pop()
-
-            ###------ Visible boxes
-
-            # # get visible container from parent
-            # parentBox = None
-            # if 'parent' in node and 'visibleBox' in node['parent']:
-            #     parentBox = node['parent']['visibleBox']
-
-            # # get position of node
-            # nodePosition = None
-            # if 'position' in node:
-            #     nodePosition = node['position']
-
-            # visibleBox = None
-            # if parentBox:   # we have parent box
-            #     if nodePosition:    # we have position -> intersect
-            #         visibleBox = self.intersection(parentBox, nodePosition)
-            #     else:   # we have no position -> take box of parent
-            #         visibleBox = parentBox
-            # else:
-            #     if nodePosition:    # we have only position
-            #         visibleBox = nodePosition
-            #     else:      # we do not have anything
-            #         visibleBox = None
-
-            # node['visibleBox'] = visibleBox
 
             ###------ IDS and Classes
 
@@ -340,20 +301,10 @@ class ElementSelector:
         if event.key == 'enter':
             plt.close()
 
-    def selectElement(self):
-        ## CROP IMAGE
-        crop_top = 900
-        self.fig = plt.figure(figsize=(10,8))
-        im = cv2.imread(self.image_path)
-        im = im[:crop_top,:,:]
-
-        plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
-
+    def getPositionedLeafNodes(self):
         ## FIND LEAVES WITH POSITION
         processing_stack = []
-        patches = []
-        # res_text = []
-        # res_others = []
+        res = []
 
         processing_stack.append(self.dom_tree.root)    
         while len(processing_stack)!=0:
@@ -366,33 +317,34 @@ class ElementSelector:
             # if we have not children and element has non zero position
             else:
                 if 'position' in node and ((node['position'][2]-node['position'][0])*(node['position'][3]-node['position'][1]) != 0):
-                    position = node['position']
-                    if node['type']==3:
-                        # res_text.append(node)    # add it
-                        patch = plt.Rectangle((position[0], position[1]), position[2]-position[0],position[3]-position[1], fill=False, edgecolor='g', linewidth=1, picker=5)
-                    else:    
-                        patch = plt.Rectangle((position[0], position[1]), position[2]-position[0],position[3]-position[1], fill=False, edgecolor='b', linewidth=1, picker=5)
-                    patch.node = node
+                    res.append(node)
+        return res
 
-                    # compute size
-                    size = (position[2]-position[0])*(position[3]-position[1])
-                    # add to patch list
-                    patches.append((patch,size))
+    def selectElement(self):
+        ## CROP IMAGE
+        crop_top = 900
+        self.fig = plt.figure(figsize=(10,8))
+        im = cv2.imread(self.image_path)
+        im = im[:crop_top,:,:]
 
-                # if 'visibleBox' in node and ((node['visibleBox'][2]-node['visibleBox'][0])*(node['visibleBox'][3]-node['visibleBox'][1]) != 0):
-                #     position = node['visibleBox']
-                #     if node['type']==3:
-                #         # res_text.append(node)    # add it
-                #         patch = plt.Rectangle((position[0], position[1]), position[2]-position[0],position[3]-position[1], fill=False, edgecolor='g', linewidth=1, picker=5)
-                #     else:    
-                #         patch = plt.Rectangle((position[0], position[1]), position[2]-position[0],position[3]-position[1], fill=False, edgecolor='b', linewidth=1, picker=5)
-                #     patch.node = node
+        plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
+        patches = []
+        # for each leaf node
+        for leafNode in self.getPositionedLeafNodes():
+            position = leafNode['position']
 
-                #     # compute size
-                #     size = (position[2]-position[0])*(position[3]-position[1])
-                #     # add to patch list
-                #     patches.append((patch,size))
-
+            # text nodes have different color (just for sanity checks)
+            if leafNode['type']==3:
+                patch = plt.Rectangle((position[0], position[1]), position[2]-position[0],position[3]-position[1], fill=False, edgecolor='g', linewidth=1, picker=5)
+            else:    
+                patch = plt.Rectangle((position[0], position[1]), position[2]-position[0],position[3]-position[1], fill=False, edgecolor='b', linewidth=1, picker=5)
+            
+            patch.node = leafNode
+            
+            # compute size
+            size = (position[2]-position[0])*(position[3]-position[1])
+            # add to patch list
+            patches.append((patch,size))
 
         patches.sort(key=lambda tup: tup[1], reverse=True)  # sorts in place
         for (patch,size) in patches:

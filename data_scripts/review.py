@@ -137,7 +137,6 @@ def reviewPatches(prefix):
     # for each label type
     for label in LABELS:
         print 'Please, review label:', label
-        
         ind = 0
 
         # for every page
