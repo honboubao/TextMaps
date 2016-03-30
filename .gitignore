@@ -5,5 +5,6 @@ data_shops
 # urls working dir
 data_scripts/shop_urls
 
-
+# universal rules
 *.DS_Store
+*.pyc
