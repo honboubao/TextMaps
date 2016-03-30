@@ -2,11 +2,19 @@ import os
 import cv2
 import sys
 import json
+import time
 import argparse
+import numpy as np
 import matplotlib.pyplot as plt
 
-IMAGES_PER_LINE = 5
-MAX_LINES = 5
+IMAGES_PER_LINE = 10
+MAX_LINES = 10
+
+FIG_HEIGHT = 8 
+FIG_WIDTH =  8
+
+MAX_PATCH_SIZE = 50.0
+
 LABELS = ['price','main_image','name']
 
 DOM_PATH = '../data_shops/labeled_dom_trees/'
@@ -72,6 +80,7 @@ def preparePatches(prefix):
         dom_path = os.path.join(DOM_PATH, page+'.json')
         page_image_path = os.path.join('../data_shops/images/', page+'.jpeg')
         
+        # if we have labeled version
         if os.path.isfile(dom_path):
             # get labeled elements
             labeled = getLabeledElements(dom_path)
@@ -82,49 +91,39 @@ def preparePatches(prefix):
             for i in range(len(LABELS)):
                 label = LABELS[i]
                 patch = getPatch(im,labeled[label])
+                
+                # get edge size
+                edge_size = np.max(patch.shape[:2])
+               
+                # if edge is too big -> update patch
+                if edge_size>MAX_PATCH_SIZE:
+                    ratio = MAX_PATCH_SIZE/edge_size
+                    patch = cv2.resize(patch,(0,0), fx=ratio, fy=ratio, interpolation = cv2.INTER_LINEAR)
+                    
+                # save
                 cv2.imwrite(os.path.join(PATCHES_PATH, page+'_'+label+'.jpeg'),patch)
 
-                ### Resize
-                ### Lower quality CV_IMWRITE_JPEG_QUALITY
-
-                ### TODO lower resolution
-
 def onPick(event):
-    ax = event.inaxes
-    if ax:
-        page = ax.page
+    print 'pick'
+    # # new selected patch
+    selected_patch = event.artist
 
+    if selected_patch:
+        page = selected_patch.page
+        
         if page not in PAGES_TO_DELETE:
             PAGES_TO_DELETE.add(page)
-
+            selected_patch.set_linewidth(4)
+            selected_patch.set_edgecolor('red')
             print '*', page, 'will be removed'
 
-            ax.spines['bottom'].set_color('red')
-            ax.spines['top'].set_color('red') 
-            ax.spines['right'].set_color('red')
-            ax.spines['left'].set_color('red')
-
-            ax.spines['bottom'].set_linewidth(2)
-            ax.spines['top'].set_linewidth(2)
-            ax.spines['right'].set_linewidth(2)
-            ax.spines['left'].set_linewidth(2)
         else:
             PAGES_TO_DELETE.remove(page)
-
-            ax.spines['bottom'].set_color('black')
-            ax.spines['top'].set_color('black') 
-            ax.spines['right'].set_color('black')
-            ax.spines['left'].set_color('black')
-
-            ax.spines['bottom'].set_linewidth(1)
-            ax.spines['top'].set_linewidth(1)
-            ax.spines['right'].set_linewidth(1)
-            ax.spines['left'].set_linewidth(1)
-
+            selected_patch.set_linewidth(1)
+            selected_patch.set_edgecolor('black')
             print '*', page, 'will not be removed'
-        
-
-        ax.figure.canvas.draw()
+    
+        selected_patch.figure.canvas.draw()
 
 
 def keyPress(event):
@@ -136,42 +135,49 @@ def reviewPatches(prefix):
     pages = getPageList(prefix)
     batch_size = IMAGES_PER_LINE*MAX_LINES
 
-
+    # for each label type
     for label in LABELS:
         print 'Please, review label:', label
+        
+        ind = 0
 
-        # for each batch
-        for i in range(0,len(pages),batch_size):
-            # get batch index
-            indFrom = i
-            indTo = i+batch_size
+        # for every page
+        while ind+1<len(pages):
+            fig = plt.figure(figsize=(FIG_WIDTH,FIG_HEIGHT))
+            ax = fig.add_subplot(111)
+            ax.set_axis_bgcolor('grey')
 
-            # create figure and add subplots
-            fig = plt.figure() #(figsize=(10,15))
-            j = 1
-            for show_page in pages[indFrom:indTo]:
+            ax.set_autoscaley_on(False)
+            ax.set_autoscalex_on(False)
+            ax.set_ylim([0,10])
+            ax.set_xlim([0,10])
 
-                labeled_dom_path = os.path.join(DOM_PATH, show_page+'.json')
+            # put in plot
+            for row in range(MAX_LINES):
+                for col in range(IMAGES_PER_LINE):
 
-                # if we have labeled DOM -> review
-                if os.path.isfile(labeled_dom_path):
-                    path_to_patch = os.path.join(PATCHES_PATH,show_page+'_'+label+'.jpeg')
-                    patch = cv2.imread(path_to_patch)
-                    ax = fig.add_subplot(MAX_LINES,IMAGES_PER_LINE,j)
-                    ax.get_xaxis().set_ticks([])
-                    ax.get_yaxis().set_ticks([])
+                    if ind<len(pages)-1:
+                        show_page = pages[ind]
+                        labeled_dom_path = os.path.join(DOM_PATH, show_page+'.json')
 
-                    ax.page = show_page
-                    ax.imshow(patch)
-                # if do not have labeled DOM -> remove it
-                else:
-                    PAGES_TO_DELETE.add(show_page)
+                        # if we have labeled version
+                        if os.path.isfile(labeled_dom_path):
 
-                j+=1
+                            path_to_patch = os.path.join(PATCHES_PATH,show_page+'_'+label+'.jpeg')
+                            patch = cv2.imread(path_to_patch)
+                            
+                            ax.imshow(patch, extent=[col,col+1,row,row+1])
+                            rect = plt.Rectangle((col,row),1, 1, facecolor=(0,0,0,0),picker=5)
+                            rect.page = show_page
+                            ax.add_patch(rect)
+                        else:
+                            print show_page, 'missing'
 
+
+                    ind = ind+1
+
+            fig.canvas.mpl_connect('pick_event', onPick)
             fig.canvas.mpl_connect('key_press_event', keyPress)
-            fig.canvas.mpl_connect('button_press_event', onPick)
-
             plt.show()
 
     # if result directory does not exist, create it
