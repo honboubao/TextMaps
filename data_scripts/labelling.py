@@ -31,24 +31,24 @@ class ElementSelector:
         if event.key == 'enter':
             plt.close()
 
-    def getPositionedLeafNodes(self):
-        ## FIND LEAVES WITH POSITION
-        processing_stack = []
-        res = []
+    # def getPositionedLeafNodes(self):
+    #     ## FIND LEAVES WITH POSITION
+    #     processing_stack = []
+    #     res = []
 
-        processing_stack.append(self.dom_tree.root)    
-        while len(processing_stack)!=0:
-            node = processing_stack.pop()
+    #     processing_stack.append(self.dom_tree.root)    
+    #     while len(processing_stack)!=0:
+    #         node = processing_stack.pop()
 
-            # if it has children follow them
-            if 'childNodes' in node:
-                for childNode in node['prunedChildNodes']:
-                    processing_stack.append(childNode)
-            # if we have not children and element has non zero position
-            else:
-                if 'position' in node and ((node['position'][2]-node['position'][0])*(node['position'][3]-node['position'][1]) != 0):
-                    res.append(node)
-        return res
+    #         # if it has children follow them
+    #         if 'childNodes' in node:
+    #             for childNode in node['prunedChildNodes']:
+    #                 processing_stack.append(childNode)
+    #         # if we have not children and element has non zero position
+    #         else:
+    #             if 'position' in node and ((node['position'][2]-node['position'][0])*(node['position'][3]-node['position'][1]) != 0):
+    #                 res.append(node)
+    #     return res
 
     def selectElement(self):
         ## CROP IMAGE
@@ -59,8 +59,10 @@ class ElementSelector:
 
         plt.imshow(cv2.cvtColor(im, cv2.COLOR_BGR2RGB))
         patches = []
+
+
         # for each leaf node
-        for leafNode in self.getPositionedLeafNodes():
+        for leafNode in self.dom_tree.getPositionedLeafNodes():
             position = leafNode['position']
 
             # text nodes have different color (just for sanity checks)

@@ -49,6 +49,25 @@ class DOMTree:
     def getLocalNodeName(self, name, count):
         return name+'['+str(count)+']'
 
+    def getPositionedLeafNodes(self):
+        ## FIND LEAVES WITH POSITION
+        processing_stack = []
+        res = []
+
+        processing_stack.append(self.root)    
+        while len(processing_stack)!=0:
+            node = processing_stack.pop()
+
+            # if it has children follow them
+            if 'childNodes' in node:
+                for childNode in node['prunedChildNodes']:
+                    processing_stack.append(childNode)
+            # if we have not children and element has non zero position
+            else:
+                if 'position' in node and ((node['position'][2]-node['position'][0])*(node['position'][3]-node['position'][1]) != 0):
+                    res.append(node)
+        return res
+
     def getPaths(self, node):
         paths = []
 
