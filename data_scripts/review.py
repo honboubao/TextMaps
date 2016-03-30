@@ -155,13 +155,12 @@ def reviewPatches(prefix):
             for row in range(MAX_LINES):
                 for col in range(IMAGES_PER_LINE):
 
-                    if ind<len(pages)-1:
+                    if ind<len(pages):
                         show_page = pages[ind]
                         labeled_dom_path = os.path.join(DOM_PATH, show_page+'.json')
 
                         # if we have labeled version
                         if os.path.isfile(labeled_dom_path):
-
                             path_to_patch = os.path.join(PATCHES_PATH,show_page+'_'+label+'.jpeg')
                             patch = cv2.imread(path_to_patch)
                             
