@@ -104,7 +104,6 @@ def preparePatches(prefix):
                 cv2.imwrite(os.path.join(PATCHES_PATH, page+'_'+label+'.jpeg'),patch)
 
 def onPick(event):
-    print 'pick'
     # # new selected patch
     selected_patch = event.artist
 
@@ -170,9 +169,6 @@ def reviewPatches(prefix):
                             rect = plt.Rectangle((col,row),1, 1, facecolor=(0,0,0,0),picker=5)
                             rect.page = show_page
                             ax.add_patch(rect)
-                        else:
-                            print show_page, 'missing'
-
 
                     ind = ind+1
 
