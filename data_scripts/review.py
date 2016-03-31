@@ -169,7 +169,7 @@ def reviewPatches(prefix):
                             ax.add_patch(rect)
                         # if we have not we will delete it
                         else:
-                            PAGES_TO_DELETE.add(page)
+                            PAGES_TO_DELETE.add(show_page)
 
                     ind = ind+1
 
