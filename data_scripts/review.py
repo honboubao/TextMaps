@@ -167,6 +167,9 @@ def reviewPatches(prefix):
                             rect = plt.Rectangle((col,row),1, 1, facecolor=(0,0,0,0),picker=5)
                             rect.page = show_page
                             ax.add_patch(rect)
+                        # if we have not we will delete it
+                        else:
+                            PAGES_TO_DELETE.add(page)
 
                     ind = ind+1
 
