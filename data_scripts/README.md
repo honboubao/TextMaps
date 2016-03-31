@@ -41,3 +41,8 @@ which contains all pages that passed the review process.
 ```Shell
 python review.py remove [prefix]
 ```
+
+## Create boxes and text maps that enter neural net
+```Shell
+python create_net_inputs.py [prefix]
+```
