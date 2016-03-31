@@ -108,11 +108,11 @@ if __name__ == "__main__":
         text_nodes.sort(key=lambda x: x[2], reverse=True)  
 
         # ALL BOXES TO NUMPY ARRAY
-        all_boxes =  np.array(other_boxes,dtype = np.float32)
+        other_boxes =  np.array(other_boxes,dtype = np.float32)
 
         #-- SAVE BOXES
         box_obj = {}
-        box_obj['all_boxes'] = all_boxes 
+        box_obj['other_boxes'] = all_boxes 
         box_obj['gt_boxes'] = gt_boxes
         box_path = os.path.join(BOXES_PATH,page+'.pkl')
         with open(box_path,'wb+') as f:    
