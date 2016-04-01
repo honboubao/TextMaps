@@ -19,7 +19,7 @@ Render given urls
 RenderUrlsToFile = function(urls, output_path, prefix, callbackPerUrl, callbackFinal) {
     var getImagePath, getImageFilename, getAnnotationPath, getListPath, formatNumberLength, next, page, retrieve, urlIndex, webpage;
     
-    urlIndex = 1;
+    urlIndex = 0;
     webpage = require("webpage");
     page = null;
     
@@ -221,6 +221,13 @@ RenderUrlsToFile = function(urls, output_path, prefix, callbackPerUrl, callbackF
         }
     };
 
+    // remove downloaded file
+    listPath = getListPath(output_path, prefix)
+    // if exists, remove
+    if (fs.exists(listPath)){
+        fs.remove(listPath);
+    }
+
     return retrieve();
 };
 
@@ -243,9 +250,9 @@ callbackPerUrl = function(status, url, pageID, dom_tree_path, html_path, listPat
 
         // write DOM tree
         var dom_content = JSON.stringify(dom_tree);
-        fs.write(dom_tree_path, dom_content, 'w+');
+        fs.write(dom_tree_path, dom_content, 'w');
         // write HTML
-        fs.write(html_path,html, 'w+');
+        fs.write(html_path,html, 'w');
         return;    
     }
     // Could not parse all xpaths
