@@ -185,30 +185,37 @@ def getNewPaths(pages, im_paths, name_paths, price_paths):
         random_page = random.choice(pages)
         dom = getPageDOM(random_page)
         page_image_path = os.path.join(IMAGES_PATH,random_page+'.jpeg')
+        displayQuestion=True
 
         # try to get price
         price_element = dom.getElementByOneOfPaths(price_paths)
-        if price_element is None:
+        if price_element is None and displayQuestion:
             print 'Help me to find price:'
             new_price_paths = selectNewPaths(page_image_path, dom)
             if len(new_price_paths)>0:
                 updatedPath=True
+            else:
+                displayQuestion=False
 
         # try to get name
         name_element = dom.getElementByOneOfPaths(name_paths)
-        if name_element is None:
+        if name_element is None and displayQuestion:
             print 'Help me to find name:'
             new_name_paths = selectNewPaths(page_image_path, dom)
             if len(new_name_paths)>0:
                 updatedPath=True
+            else:
+                displayQuestion=False
 
         # try to get image
         image_element = dom.getElementByOneOfPaths(im_paths)
-        if image_element is None:
+        if image_element is None and displayQuestion:
             print 'Help me to find image:'
             new_image_paths = selectNewPaths(page_image_path, dom)
             if len(new_image_paths)>0:
                 updatedPath=True
+            else:
+                displayQuestion=False
 
     return new_price_paths, new_image_paths, new_name_paths
 
