@@ -209,7 +209,7 @@ RenderUrlsToFile = function(urls, output_path, prefix, callbackPerUrl, callbackF
 
                             page.render(image_path,{format: 'jpeg', quality: '100'});
                             return next(status, url, pageID, dom_tree_path, html_path, list_path, dom_tree, html);
-                    }), 1000);
+                    }), 2000);
                 } 
                 // not succeded
                 else {
