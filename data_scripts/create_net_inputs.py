@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
         #-- SAVE BOXES
         box_obj = {}
-        box_obj['other_boxes'] = all_boxes 
+        box_obj['other_boxes'] = other_boxes 
         box_obj['gt_boxes'] = gt_boxes
         box_path = os.path.join(BOXES_PATH,page+'.pkl')
         with open(box_path,'wb+') as f:    
