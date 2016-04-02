@@ -156,12 +156,16 @@ def getUnlabeledPages(pages):
     print 'Getting unlabed pages'
 
     unlabeled = []
-    
+    labeled_count=0
     for page in pages:
         path = os.path.join(LABELED_DOM_PATH,prefix+'.json')
         if not os.path.exists(path):
             unlabeled.append(page)
-
+        else:
+            labeled_count+=1
+            
+    print 'Unlabeled count:', len(unlabeled)
+    print 'Labeled count:', labeled_count
     return unlabeled
 
 def getPageDOM(page):
