@@ -187,6 +187,10 @@ def getNewPaths(pages, im_paths, name_paths, price_paths):
         page_image_path = os.path.join(IMAGES_PATH,random_page+'.jpeg')
         displayQuestion=True
 
+        new_price_paths = []
+        new_name_paths = []
+        new_image_paths = []
+
         # try to get price
         price_element = dom.getElementByOneOfPaths(price_paths)
         if price_element is None and displayQuestion:
