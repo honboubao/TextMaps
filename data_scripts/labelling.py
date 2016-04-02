@@ -3,8 +3,20 @@ import cv2
 import sys
 import json
 import copy
+import pickle
+import random
 from dom_tree import DOMTree
 import matplotlib.pyplot as plt
+
+FIGURE_WIDTH = 14
+FIGURE_HEIGHT = 10
+
+
+DOWNLOADED_PAGES_LIST_PATH = '../data_shops/downloaded_pages/'
+LABELED_DOM_PATH =  '../data_shops/labeled_dom_trees/'
+IMAGES_PATH = '../data_shops/images/'
+DOM_PATH = '../data_shops/dom_trees/'
+PATHS_PATH = '../data_shops/element_paths/'
 
 #----- CLASS FOR SELECTING A NODE
 class ElementSelector:
@@ -31,29 +43,10 @@ class ElementSelector:
         if event.key == 'enter':
             plt.close()
 
-    # def getPositionedLeafNodes(self):
-    #     ## FIND LEAVES WITH POSITION
-    #     processing_stack = []
-    #     res = []
-
-    #     processing_stack.append(self.dom_tree.root)    
-    #     while len(processing_stack)!=0:
-    #         node = processing_stack.pop()
-
-    #         # if it has children follow them
-    #         if 'childNodes' in node:
-    #             for childNode in node['prunedChildNodes']:
-    #                 processing_stack.append(childNode)
-    #         # if we have not children and element has non zero position
-    #         else:
-    #             if 'position' in node and ((node['position'][2]-node['position'][0])*(node['position'][3]-node['position'][1]) != 0):
-    #                 res.append(node)
-    #     return res
-
     def selectElement(self):
         ## CROP IMAGE
         crop_top = 900
-        self.fig = plt.figure(figsize=(10,8))
+        self.fig = plt.figure(figsize=(FIGURE_WIDTH,FIGURE_HEIGHT))
         im = cv2.imread(self.image_path)
         im = im[:crop_top,:,:]
 
@@ -92,26 +85,132 @@ class ElementSelector:
             return None
 
 
-def findAndLabel(dom, image_path, labelName, paths):
-    # find element
-    element = dom.getElementByOneOfPaths(paths)
-    # if we have no element -> select it
-    if element is None:
-        print '\''+labelName+'\' not found. Please give me a hint:'
-        selector = ElementSelector(image_path,dom)
-        element = selector.selectElement()
+# def findAndLabel(dom, image_path, labelName, paths):
+#     # find element
+#     element = dom.getElementByOneOfPaths(paths)
+#     # if we have no element -> select it
+#     if element is None:
+#         print '\''+labelName+'\' not found. Please give me a hint:'
+#         selector = ElementSelector(image_path,dom)
+#         element = selector.selectElement()
     
-    # if we selected the element
-    if element:
-        new_paths = dom.getPaths(element)
-        paths.extend(new_paths)
-        element['label'] = labelName
-        print '\''+labelName+'\' found'
+#     # if we selected the element
+#     if element:
+#         new_paths = dom.getPaths(element)
+#         paths.extend(new_paths)
+#         element['label'] = labelName
+#         print '\''+labelName+'\' found'
+#         return True
+
+#     # we still do not have element
+#     else:
+#         return False
+
+def findAndLabel(page, main_image_paths, name_paths, price_paths):
+    # get dom
+    dom = getPageDOM(page)
+
+    # find elements
+    image_element = dom.getElementByOneOfPaths(main_image_paths)
+    name_element = dom.getElementByOneOfPaths(name_paths)
+    price_element = dom.getElementByOneOfPaths(price_paths)
+
+    # if we have all elements
+    if image_element and name_element and price_element:
+        image_element['label'] = 'main_image'
+        name_element['label'] = 'name'
+        price_element['label'] = 'price'
+
+        dom.saveTree(os.path.join(LABELED_DOM_PATH, page+'.json'))
         return True
 
-    # we still do not have element
+    # if we do not have all
     else:
         return False
+
+def loadPaths(prefix):
+    print 'Loading paths'
+    price_paths = []
+    main_image_paths = []
+    name_paths = []
+    path_to_saved_path = os.path.join(PATHS_PATH, prefix+'.pkl')
+    if os.path.exists(path_to_saved_path):
+        paths = pickle.load(open(path_to_saved_path,'rb'))
+        price_paths = paths['price']
+        main_image_paths = paths['main_image']
+        name_paths = paths['name']
+
+    return price_paths, main_image_paths, name_paths
+
+def savePaths(prefix, main_image_paths, name_paths, price_paths):
+    paths = {}
+    paths['price'] = price_paths
+    paths['main_image'] = main_image_paths
+    paths['name'] = name_paths
+     
+    path_to_saved_path = os.path.join(PATHS_PATH, prefix+'.pkl')
+    pickle.dump(paths, open(path_to_saved_path,'wb+'))
+
+
+def getUnlabeledPages(pages):
+    print 'Getting unlabed pages'
+
+    unlabeled = []
+    
+    for page in pages:
+        path = os.path.join(LABELED_DOM_PATH,prefix+'.json')
+        if not os.path.exists(path):
+            unlabeled.append(page)
+
+    return unlabeled
+
+def getPageDOM(page):
+    dom_path = os.path.join(DOM_PATH,page+'.json')
+    return DOMTree(dom_path)
+
+def selectNewPaths(image_path, dom):
+    selector = ElementSelector(image_path,dom)
+    element = selector.selectElement()
+    if element:
+        return dom.getPaths(element)
+    else:
+        return []
+
+
+def getNewPaths(pages, im_paths, name_paths, price_paths):
+    updatedPath = False
+
+    # untile we have no upadted path
+    while not updatedPath:
+        random_page = random.choice(pages)
+        dom = getPageDOM(random_page)
+        page_image_path = os.path.join(IMAGES_PATH,random_page+'.jpeg')
+
+        # try to get price
+        price_element = dom.getElementByOneOfPaths(price_paths)
+        if price_element is None:
+            print 'Help me to find price:'
+            new_price_paths = selectNewPaths(page_image_path, dom)
+            if len(new_price_paths)>0:
+                updatedPath=True
+
+        # try to get name
+        name_element = dom.getElementByOneOfPaths(name_paths)
+        if name_element is None:
+            print 'Help me to find name:'
+            new_name_paths = selectNewPaths(page_image_path, dom)
+            if len(new_name_paths)>0:
+                updatedPath=True
+
+        # try to get image
+        image_element = dom.getElementByOneOfPaths(im_paths)
+        if image_element is None:
+            print 'Help me to find image:'
+            new_image_paths = selectNewPaths(page_image_path, dom)
+            if len(new_image_paths)>0:
+                updatedPath=True
+
+    return new_price_paths, new_image_paths, new_name_paths
 
 #----- MAIN PART
 if __name__ == "__main__":
@@ -124,43 +223,55 @@ if __name__ == "__main__":
     prefix = sys.argv[1]
 
     # prepare output path
-    labeled_doms_path =  '../data_shops/labeled_dom_trees/'
-    if not os.path.exists(labeled_doms_path):
-        os.makedirs(labeled_doms_path)
+    if not os.path.exists(LABELED_DOM_PATH):
+        os.makedirs(LABELED_DOM_PATH)
+    if not os.path.exists(PATHS_PATH):
+        os.makedirs(PATHS_PATH)
 
     # load pages
-    pages_path = os.path.join('../data_shops/downloaded_pages/', prefix+'.txt')
+    pages_path = os.path.join(DOWNLOADED_PAGES_LIST_PATH, prefix+'.txt')
     with open(pages_path,'r') as f:
         pages = [line.split('\t')[0] for line in f.readlines()]
 
-    # prepare paths to elements
-    price_paths = []
-    main_image_paths = []
-    name_paths = []
+    # try to load paths to elements
+    price_paths, main_image_paths, name_paths = loadPaths(prefix)
+    
+    # split pages to already labeled or unlabeled
+    unlabeled_pages = getUnlabeledPages(pages)
 
-    # for every page
-    for page in pages:
-        print '-'*20
-        print page
+    # until there are some unlabeled_pages
+    while len(unlabeled_pages)>0:
 
-        # prepare paths
-        dom_path = os.path.join('../data_shops/dom_trees/',page+'.json')
-        page_image_path = os.path.join('../data_shops/images/',page+'.jpeg')
-        
-        # load dom tree
-        dom = DOMTree(dom_path)
-        
-        # get price
-        price_succes = findAndLabel(dom, page_image_path, 'price', price_paths)
-        
-        # if we got price, get main image
-        if price_succes:
-            main_image_succes = findAndLabel(dom, page_image_path, 'main_image', main_image_paths)
-        
-        # if we got both, try to get name
-        if price_succes and main_image_succes:
-            name_succes = findAndLabel(dom, page_image_path, 'name', name_paths)
+        # get new paths
+        print 'Get new paths'
+        new_price_paths, new_image_paths, new_name_paths  \
+            = getNewPaths(unlabeled_pages, main_image_paths, name_paths, price_paths)
 
+        # update existing paths
+        print 'Updating paths'
+        price_paths.extend(new_price_paths)
+        main_image_paths.extend(new_image_paths)
+        name_paths.extend(new_name_paths)
 
-        if price_succes and main_image_succes and name_succes:
-            dom.saveTree(os.path.join(labeled_doms_path, page+'.json'))
+        # save new updated paths
+        print 'Saving new paths'
+        savePaths(prefix,  main_image_paths, name_paths, price_paths)
+
+        # try to annotate page
+        print 'Annotating other pages'
+
+        succeded_count = 0
+        new_unlabeled_pages = []
+        for page in unlabeled_pages:
+            print page
+            success = findAndLabel(page, main_image_paths, name_paths, price_paths)
+            if success:
+                succeded_count += 1
+            else:
+                new_unlabeled_pages.append(page)
+
+        # print result
+        print "Successfully labeled", succeded_count, 'pages.'
+        print "Unlabeled pages", len(new_unlabeled_pages), 'pages.'
+
+        unlabeled_pages = new_unlabeled_pages
