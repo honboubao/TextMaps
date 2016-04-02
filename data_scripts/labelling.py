@@ -158,11 +158,11 @@ def getUnlabeledPages(pages):
     unlabeled = []
     labeled_count=0
     for page in pages:
-        path = os.path.join(LABELED_DOM_PATH,prefix+'.json')
-        if not os.path.exists(path):
-            unlabeled.append(page)
-        else:
+        path = os.path.join(LABELED_DOM_PATH,page+'.json')
+        if os.path.exists(path):
             labeled_count+=1
+        else:
+            unlabeled.append(page)
             
     print 'Unlabeled count:', len(unlabeled)
     print 'Labeled count:', labeled_count
