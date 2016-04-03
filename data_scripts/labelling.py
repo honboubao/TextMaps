@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 FIGURE_WIDTH = 14
 FIGURE_HEIGHT = 10
-
+MAX_LABELED = 500
 
 DOWNLOADED_PAGES_LIST_PATH = '../data_shops/downloaded_pages/'
 LABELED_DOM_PATH =  '../data_shops/labeled_dom_trees/'
@@ -83,28 +83,6 @@ class ElementSelector:
             return self.selected_patch.node
         else:
             return None
-
-
-# def findAndLabel(dom, image_path, labelName, paths):
-#     # find element
-#     element = dom.getElementByOneOfPaths(paths)
-#     # if we have no element -> select it
-#     if element is None:
-#         print '\''+labelName+'\' not found. Please give me a hint:'
-#         selector = ElementSelector(image_path,dom)
-#         element = selector.selectElement()
-    
-#     # if we selected the element
-#     if element:
-#         new_paths = dom.getPaths(element)
-#         paths.extend(new_paths)
-#         element['label'] = labelName
-#         print '\''+labelName+'\' found'
-#         return True
-
-#     # we still do not have element
-#     else:
-#         return False
 
 def findAndLabel(page, main_image_paths, name_paths, price_paths):
     # get dom
@@ -254,6 +232,7 @@ if __name__ == "__main__":
     # split pages to already labeled or unlabeled
     unlabeled_pages = getUnlabeledPages(pages)
 
+    total_labeled_count = len(pages)-len(unlabeled_pages)
     # until there are some unlabeled_pages
     while len(unlabeled_pages)>0:
 
@@ -275,18 +254,26 @@ if __name__ == "__main__":
         # try to annotate page
         print 'Annotating other pages'
 
-        succeded_count = 0
+        #succeded_count = 0
         new_unlabeled_pages = []
         for page in unlabeled_pages:
-            print page
             success = findAndLabel(page, main_image_paths, name_paths, price_paths)
             if success:
-                succeded_count += 1
+                print total_labeled_count, page
+                total_labeled_count += 1
             else:
                 new_unlabeled_pages.append(page)
 
-        # print result
-        print "Successfully labeled", succeded_count, 'pages.'
-        print "Unlabeled pages", len(new_unlabeled_pages), 'pages.'
+            if total_labeled_count>=MAX_LABELED:
+                break
 
+        # print result
+        print "Successfully labeled", total_labeled_count, 'pages.'
+        print "Unlabeled pages", len(new_unlabeled_pages), 'pages.'
+   
         unlabeled_pages = new_unlabeled_pages
+        
+        # check maximum threshold
+        if total_labeled_count>=MAX_LABELED:
+            print "Maximum number of labeled examples achieved"
+            break
