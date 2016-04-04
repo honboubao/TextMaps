@@ -13,7 +13,7 @@ MAX_LINES = 10
 FIG_HEIGHT = 8 
 FIG_WIDTH =  8
 
-MAX_PATCH_SIZE = 50.0
+MAX_PATCH_SIZE = 100.0
 
 LABELS = ['price','main_image','name']
 
@@ -53,11 +53,22 @@ def getPatch(im, element):
     pos = element['position']
     return im[pos[1]:pos[3],pos[0]:pos[2],:]
 
-def getPageList(prefix):
-    pages_path = os.path.join(DOWNLOADED_PAGES_PATH, prefix+'.txt')
+def getLabeledPageList(prefix):
+    # load all pages
+    pages_path = os.path.join(DOWNLOADED_PAGES_PATH, prefix+'.txt') 
     with open(pages_path,'r') as f:
         pages = [line.split('\t')[0] for line in f.readlines()]
-    return pages
+
+   # get labeled pages
+    labelled_pages = []
+    for page in pages:
+        dom_path = os.path.join(DOM_PATH, page+'.json')
+
+        # if we have label add it
+        if os.path.isfile(dom_path):
+            labelled_pages.append(page)
+  
+    return labelled_pages
 
 
 def preparePatches(prefix):
@@ -66,9 +77,7 @@ def preparePatches(prefix):
         os.makedirs(PATCHES_PATH)
 
     # load pages
-    pages = getPageList(prefix)
-
-
+    pages = getLabeledPageList(prefix)
     number_of_pages = len(pages)
 
     # for each page from prexix
@@ -87,7 +96,6 @@ def preparePatches(prefix):
 
             # load image
             im = cv2.imread(page_image_path)
-
             for i in range(len(LABELS)):
                 label = LABELS[i]
                 patch = getPatch(im,labeled[label])
@@ -131,7 +139,7 @@ def keyPress(event):
 
 def reviewPatches(prefix):
     # load pages
-    pages = getPageList(prefix)
+    pages = getLabeledPageList(prefix)
     batch_size = IMAGES_PER_LINE*MAX_LINES
 
     # for each label type
@@ -194,7 +202,7 @@ def reviewPatches(prefix):
 
 def removePatches(prefix):
     # load pages
-    pages = getPageList(prefix)
+    pages = getLabeledPageList(prefix)
 
     # for each page from prexix
     for page in pages:
