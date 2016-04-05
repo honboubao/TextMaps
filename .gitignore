@@ -1,10 +1,17 @@
-# ignore data folder
-# it should be downloaded via FTP
+#### ignore data folder
+#### it should be downloaded via FTP
 data_shops
 
-# urls working dir
+#### urls working dir
 data_scripts/shop_urls
 
-# universal rules
+#### universal rules
 *.DS_Store
 *.pyc
+
+# trained models
+models/training/*
+
+### others
+visualization/core
+visualization/.*
