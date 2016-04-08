@@ -36,7 +36,6 @@ class WebDataLayer(caffe.Layer):
             data = [line.strip() for line in f.readlines()]
             return data
 
-
     def matrix_list_to_blob(self, ims):
         max_shape = np.array([im.shape for im in ims]).max(axis=0)
         num_images = len(ims)
@@ -98,6 +97,10 @@ class WebDataLayer(caffe.Layer):
 
         # label
         top[3].reshape(200,)
+
+    def set_data(self, data_path):
+        self.data_set_path = data_path
+        self.data = self.load_data_set(self.data_set_path)
 
     def reshape(self, bottom, top):
         pass
