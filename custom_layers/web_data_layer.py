@@ -1,3 +1,4 @@
+import os
 import cv2
 import yaml
 import json
@@ -8,6 +9,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from multiprocessing import Process, Queue
 from sklearn.preprocessing import normalize
+
+
+IMAGES_PATH='/storage/plzen1/home/gogartom/TextMaps/data_shops/images/'
+TEXT_MAPS_PATH='/storage/plzen1/home/gogartom/TextMaps/data_shops/text_maps/'
+BOXES_PATH='/storage/plzen1/home/gogartom/TextMaps/data_shops/input_boxes/'
 
 class WebDataLayer(caffe.Layer):
 
@@ -27,7 +33,7 @@ class WebDataLayer(caffe.Layer):
 
     def load_data_set(self,path):
         with(open(path,'r')) as f:
-            data = [line.strip().split() for line in f.readlines()]
+            data = [line.strip() for line in f.readlines()]
             return data
 
 
@@ -74,12 +80,6 @@ class WebDataLayer(caffe.Layer):
         ### INPUT PARAMS
         self.y_size = 1280
         self.x_size = 1280
-        #self.text_map_scale = 0.125 #1/8
-        #self.result_scale = 0.0625 #1/16
-        #self.im_scale = 1.
-        #self.text_map_scale = 0.25
-        #self.result_scale = 0.25
-        #self.im_scale = 0.25
 
         self.text_map_scale = layer_params['txt_scale']
         self.im_scale = layer_params['im_scale']
@@ -142,17 +142,17 @@ class DataFetcher(Process):
         ### for each page in batch
         for i in range(len(data)):
             ### IMAGE
-            image_path = data[i][0]
+            image_path=os.path.join(IMAGES_PATH, data[i]+'.jpeg')
             im = self.load_image(image_path)
             images.append(im)
 
             ### TEXT MAP
-            text_path = data[i][1]
+            text_path=os.path.join(TEXT_MAPS_PATH,data[i]+'.pkl')
             text_map = self.load_text_map(text_path)
             text_maps.append(text_map)
 
             ### BOXES AND LABELS
-            boxes_path = data[i][2]
+            boxes_path=os.path.join(BOXES_PATH,data[i]+'.pkl')
             boxes, labels = self.load_boxes(boxes_path, self.boxes_per_batch)
             batch_ind = i * np.ones((boxes.shape[0], 1))
             boxes_this_image = np.hstack((batch_ind, boxes))
