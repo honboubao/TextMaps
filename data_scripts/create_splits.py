@@ -2,7 +2,7 @@ import os
 import sys
 from sklearn.cross_validation import KFold
 
-RESULT_PATH = '../data_shops/splits/'
+RESULT_PATH = '../data_shops/page_sets/splits/'
 PAGE_SETS_PATH = '../data_shops/page_sets/'
 SHOP_LIST_PATH = '../data_shops/shop_list.txt'
 

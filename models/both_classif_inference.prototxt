@@ -9,7 +9,7 @@ layer {
   python_param {
     module: 'web_data_layer'
     layer: 'WebDataLayer'
-    param_str: "{'phase':'TEST','batch_size': 1, 'data': '/storage/plzen1/home/gogartom/TextMaps/data_shops/test.txt','im_scale':1,'txt_scale':0.125}"
+    param_str: "{'phase':'TEST','batch_size': 1, 'data': '','im_scale':1,'txt_scale':0.125}"
   }
 }
 
