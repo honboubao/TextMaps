@@ -17,21 +17,31 @@ BOXES_PATH='/storage/plzen1/home/gogartom/TextMaps/data_shops/input_boxes/'
 
 class WebDataLayer(caffe.Layer):
 
+    def stop_fetcher(self):
+        print 'Terminating DataFetcher'
+        self.prefetch_process.terminate()
+        self.prefetch_process.join()
+
+
     def start_fetcher(self):
+        if self.data is None:
+            self.data = self.load_data_set(self.data_set_path)
+
         self.prefetch_process = DataFetcher(self.queue, self.data, self.batch_size, self.phase,
                                             self.x_size, self.y_size, self.text_map_scale, self.im_scale)
         self.prefetch_process.daemon = True
         self.prefetch_process.start()
 
         # Terminate the child process when the parent exists
-        def cleanup():
-            print 'Terminating DataFetcher'
-            self.prefetch_process.terminate()
-            self.prefetch_process.join()
+        #def cleanup():
+        #    print 'Terminating DataFetcher'
+        #    self.prefetch_process.terminate()
+        #    self.prefetch_process.join()
         import atexit
-        atexit.register(cleanup)
+        atexit.register(self.stop_fetcher)
 
     def load_data_set(self,path):
+        print 'Loading data from:', path
         with(open(path,'r')) as f:
             data = [line.strip() for line in f.readlines()]
             return data
@@ -83,7 +93,6 @@ class WebDataLayer(caffe.Layer):
         self.text_map_scale = layer_params['txt_scale']
         self.im_scale = layer_params['im_scale']
 
-        self.data = self.load_data_set(self.data_set_path)
         self.prefetch_process = None
         self.queue = Queue(10)
 
@@ -236,6 +245,10 @@ class DataFetcher(Process):
 
         gt_boxes = boxes['gt_boxes']
         other_boxes = boxes['other_boxes']
+
+        # remove boxes outside the considered area
+        keep_indices = np.logical_and.reduce(((other_boxes[:,0]>=0), (other_boxes[:,1]>=0),(other_boxes[:,2]<=self.x_size), (other_boxes[:,3]<=self.y_size)))
+        other_boxes = other_boxes[keep_indices,:]
         
         # remove boxes
         #indices_to_remove = []
