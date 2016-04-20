@@ -1,3 +1,4 @@
+
 import sys
 import utils
 import caffe
@@ -17,12 +18,18 @@ def get_position_probabilities(position_maps, boxes):
             probs[box_i,cls] = box_cls_prob
     return probs
 
-def get_results_with_position(boxes, local_probs, position_maps):
+
+def get_probabilities_with_position(boxes, local_probs, position_maps):
     #-- get position probability for each box
     position_probs = get_position_probabilities(position_maps, boxes)
 
     #-- multiply with local prob
-    probs = (local_probs*position_probs)[:,1:4]
+    probs = (local_probs*position_probs)
+    return probs
+
+def get_results_with_position(boxes, local_probs, position_maps):
+    #-- get probabalities
+    probs = get_probabilities_with_position(boxes, local_probs, position_maps)[:,1:4]
 
     #-- are the first 3 those with maximum probability
     max_inds = np.argmax(probs,axis=0)
@@ -94,6 +101,7 @@ if __name__ == "__main__":
                         default='/storage/plzen1/home/gogartom/DOM-Extraction/data/imagenet_models/CaffeNet.v2.caffemodel', type=str)
     parser.add_argument('--test_iters', type=int, default=1000, help='Number of iterations for testing')
     parser.add_argument('--experiment', type=str, default=None, help='name of experiment', required=True)
+    parser.add_argument('--gauss_var', type=int, default=80, help='Variance of gaussian kernel')
     args = parser.parse_args()
 
     #-- Load params
@@ -102,12 +110,13 @@ if __name__ == "__main__":
     test_model = args.test_model
     snapshot = args.snapshot
     experiment = args.experiment
+    gauss_var = args.gauss_var
 
     #--- GPU
     caffe.set_mode_gpu()
 
     #--- LOAD SMOTHED POSITION MAPS
-    position_maps = utils.load_position_maps(split_name, 80)
+    position_maps = utils.load_position_maps(split_name, gauss_var)
 
     #--- LOAD TEST DATA
     test_data = utils.get_test_data_path(split_name)
