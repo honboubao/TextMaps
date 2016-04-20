@@ -250,20 +250,10 @@ class DataFetcher(Process):
         keep_indices = np.logical_and.reduce(((other_boxes[:,0]>=0), (other_boxes[:,1]>=0),(other_boxes[:,2]<=self.x_size), (other_boxes[:,3]<=self.y_size)))
         other_boxes = other_boxes[keep_indices,:]
         
-        # remove boxes
-        #indices_to_remove = []
-        #for box in gt_boxes:
-        #    ind = np.where(np.all(all_boxes==box,axis=1))[0][0]
-        #    indices_to_remove.append(ind)
-        #
-        #all_boxes = np.delete(all_boxes, indices_to_remove, axis = 0)
-
         # create boxes
         if self.phase == 'TRAIN':
             rows_to_include=np.random.randint(other_boxes.shape[0],size=n_others)
             other_boxes = other_boxes[rows_to_include,:]
-        #elif self.phase == 'TEST':
-        #    other_boxes = other_boxes
 
         boxes = np.vstack((gt_boxes,other_boxes))
         
