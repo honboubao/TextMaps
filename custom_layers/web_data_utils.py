@@ -35,7 +35,7 @@ def get_text_nodes(leaf_nodes, n_features):
 
 def get_text_maps(text_nodes, n_features, spatial_shape, text_map_scale):
     # scale down spatial dimensions
-    features = np.zeros(round((spatial_shape[0]*text_map_scale)),round((spatial_shape[1]*text_map_scale)), n_features), dtype=np.float)
+    features = np.zeros((round((spatial_shape[0]*text_map_scale)),round((spatial_shape[1]*text_map_scale)), n_features), dtype=np.float)
     
     # for each node in text nodes
     for node in text_nodes:
