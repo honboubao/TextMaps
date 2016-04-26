@@ -7,6 +7,7 @@ import pickle
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+import web_data_utils as data_utils
 from multiprocessing import Process, Queue
 from sklearn.preprocessing import normalize
 
@@ -268,29 +269,14 @@ class DataFetcher(Process):
         with open(filename,'rb') as f:
             obj = pickle.load(f)
 
-        shape = obj['shape']
+        text_shape = obj['shape']
         text_nodes = obj['text_nodes']        
 
-        # specify size
-        map_shape = [round(x*self.text_map_scale) for x in [self.y_size,self.x_size]]
-        n_features = shape[2]
+        spatial_shape = [self.y_size,self.x_size]
+        n_features = text_shape[2]
 
-        features = np.zeros((map_shape[0],map_shape[1],n_features), dtype=np.float)
-        for node in text_nodes:
-            bb = node[0]
-            bb_scaled = [int(round(x*self.text_map_scale)) for x in bb]
-            encoded_text = node[1]
-            encoded_text = normalize(encoded_text, axis=1, norm='l2')*255
-            vector = np.asarray(encoded_text.todense())[0]
-            features[bb_scaled[1]:bb_scaled[3],bb_scaled[0]:bb_scaled[2],:] = vector
-
-        # HIDE ELEMENTS
-        #if hide_rois_elements:
-        #    for elem in hide_rois_elements:
-        #        sc_elem = [round(e*scale) for e in elem]
-        #        features[sc_elem[1]:sc_elem[3],sc_elem[0]:sc_elem[2],:] = 0
-
-        return features
+        text_map = data_utils.get_text_maps(text_nodes, n_features, spatial_shape, self.text_map_scale)
+        return text_map
 
     def __init__(self, queue, data, batch_size, phase, x_size, y_size, text_map_scale, im_scale):
         super(DataFetcher, self).__init__()
