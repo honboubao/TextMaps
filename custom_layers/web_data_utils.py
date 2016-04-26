@@ -41,7 +41,7 @@ def get_text_maps(text_nodes, n_features, spatial_shape, text_map_scale):
     # for each node in text nodes
     for node in text_nodes:
         bb = node[0]
-        bb_scaled = [int(round(x*self.text_map_scale)) for x in bb]
+        bb_scaled = [int(round(x*text_map_scale)) for x in bb]
         encoded_text = node[1]
         encoded_text = normalize(encoded_text, axis=1, norm='l2')
         encoded_text = encoded_text*255   # we multiply by 255 in order to move to image scale
