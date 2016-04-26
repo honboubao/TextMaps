@@ -1,5 +1,6 @@
 import re
 import numpy as np
+from sklearn.preprocessing import normalize
 from sklearn.feature_extraction.text import HashingVectorizer
 
 def preprocess_string(text):
