@@ -4,7 +4,7 @@ import cv2
 import pickle
 import argparse
 import numpy as np
-from dom_tree import DOMTree
+from custom_layers.dom_tree import DOMTree
 from sklearn.feature_extraction.text import HashingVectorizer
 
 IMAGES_PATH = '../data_shops/images/'

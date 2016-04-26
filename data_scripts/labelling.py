@@ -5,7 +5,7 @@ import json
 import copy
 import pickle
 import random
-from dom_tree import DOMTree
+from custom_layers.dom_tree import DOMTree
 import matplotlib.pyplot as plt
 
 FIGURE_WIDTH = 14
