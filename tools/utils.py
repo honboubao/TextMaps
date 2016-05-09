@@ -82,6 +82,12 @@ def create_position_maps(train_data, split_name):
         path = os.path.join(priors_directory,'split_'+split_name+'_'+str(i)+'.pkl')
         pickle.dump(final_maps[i], open(path,"wb"))
 
+def load_position_map(file_name, sigma):
+    map = pickle.load(open(file_name,'rb'))
+    ### Gaussian convolution
+    filtered_maps = []
+    filtered =  gaussian_filter(map, sigma)
+    return filtered
 
 def load_position_maps(split_name, sigma):
     print 'Loading position maps smoothed with Gausian filter, sigma=',sigma
@@ -90,11 +96,6 @@ def load_position_maps(split_name, sigma):
     for i in range(4):
         ### Load map
         path = os.path.join(priors_directory,'split_'+split_name+'_'+str(i)+'.pkl')
-        map = pickle.load(open(path,'rb'))
-
-        ### Gaussian convolution
-        filtered_maps = []
-        filtered =  gaussian_filter(map, sigma)
+        filtered = load_position_map(path, sigma)
         maps.append(filtered)
-
     return maps

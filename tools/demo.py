@@ -1,10 +1,13 @@
+import os
 import cv2
 import caffe
-import matplotlib.pyplot as plt
+import utils
 import numpy as np
+import matplotlib.pyplot as plt
+from utils import load_position_map
+from test import  get_probabilities_with_position
 from custom_layers.dom_tree import DOMTree
 import custom_layers.web_data_utils as data_utils
-
 
 #----------------
 # PREPARE PHANTOMJS DOWNLOAD PAGE (URL, TMPFILENAME) -> IMAGE.JPEG, DOM-TREE.JSON
@@ -24,10 +27,18 @@ Y_SIZE = 1280
 X_SIZE = 1280
 SPATIAL_SHAPE = (Y_SIZE, X_SIZE)
 TEXT_MAP_SCALE = 0.125
+GAUSS_VAR = 80
 
 # DATA
 image_path = '../../textmaps_download/www.final-score.com-000001.jpeg'
 dom_path = '../../textmaps_download/www.final-score.com-000001.json'
+position_map_path = '../../textmaps_download/split_priors/'
+
+#--- LOAD SMOTHED POSITION MAPS
+position_maps = []
+for i in range(4):
+    path = os.path.join(position_map_path,'split_1_'+str(i)+'.pkl')
+    position_maps.append(load_position_map(path,sigma=80))
 
 # load image
 im = cv2.imread(image_path)
@@ -64,6 +75,10 @@ text_blob = text_blob.transpose((0, 3, 1, 2))
 
 # get input boxes
 boxes = np.array([leaf['position'] for leaf in leaf_nodes],dtype = np.float32)
+# remove boxes outside the considered area
+keep_indices = np.logical_and.reduce(((boxes[:,0]>=0), (boxes[:,1]>=0),(boxes[:,2]<=size_x), (boxes[:,3]<=size_y)))
+boxes = boxes[keep_indices,:]
+
 boxes_this_image = np.hstack((np.zeros((boxes.shape[0], 1)), boxes))
 
 #LOAD NET
@@ -99,8 +114,12 @@ plt.imshow(image)
 predicted = net.blobs['prob'].data[:,0:4,0,0]
 boxes = net.blobs['boxes'].data[:,1:5] 
 
-box_class = np.argmax(predicted,axis=1)
-max_boxes = np.argmax(predicted,axis=0)
+probs = get_probabilities_with_position(boxes, predicted, position_maps)
+box_class = np.argmax(probs,axis=1)
+max_boxes = np.argmax(probs,axis=0)
+
+# print box_class
+print boxes[0:2,:]
 
 for cls in range(1,4):
     ind = max_boxes[cls]
