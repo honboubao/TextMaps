@@ -18,7 +18,6 @@ def get_position_probabilities(position_maps, boxes):
             probs[box_i,cls] = box_cls_prob
     return probs
 
-
 def get_probabilities_with_position(boxes, local_probs, position_maps):
     #-- get position probability for each box
     position_probs = get_position_probabilities(position_maps, boxes)
