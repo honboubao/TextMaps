@@ -1,8 +1,8 @@
-net: "/storage/plzen1/home/gogartom/TextMaps/models/both_classif_train.prototxt"  		# Change this to the absolute path to your model file
+net: "/storage/plzen1/home/gogartom/TextMaps/models/v4_train.prototxt"  		# Change this to the absolute path to your model file
 test_initialization: false
 #test_iter: 30
 #test_interval: 30 #150
-base_lr: 0.001
+base_lr: 0.0005
 lr_policy: "step"
 gamma: 1.0
 stepsize: 10000000
