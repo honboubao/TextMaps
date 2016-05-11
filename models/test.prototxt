@@ -1,22 +1,16 @@
 name: "segnet"
-input: "im_data"
-input_shape {
-  dim: 1
-  dim: 3
-  dim: 1280
-  dim: 1280
-}
-input: "txt_data"
-input_shape {
-  dim: 1
-  dim: 128
-  dim: 160
-  dim: 160
-}
-input: "boxes"
-input_shape {
-  dim: 1 # to be changed on-the-fly to num ROIs
-  dim: 5 # [batch ind, x1, y1, x2, y2] zero-based indexing
+layer {
+  name: 'data'
+  type: 'Python'
+  top: 'im_data'
+  top: 'txt_data'
+  top: 'boxes'
+  top: 'labels'
+  python_param {
+    module: 'web_data_layer'
+    layer: 'WebDataLayer'
+    param_str: "{'phase':'TEST','batch_size': 1, 'data': '','im_scale':1,'txt_scale':0.125}"
+  }
 }
 layer {
   name: "conv1"
@@ -249,4 +243,15 @@ layer {
   bottom: "conv_classifier"
   top: "prob"
   softmax_param {engine: CAFFE}
+}
+layer {
+  type: 'Python'
+  bottom: 'prob'
+  top: 'web_price_accuracy'
+  top: 'web_image_accuracy'
+  top: 'web_name_accuracy'
+  python_param {
+    module: 'web_accuracy_layer'
+    layer: 'WebAccuracyLayer'
+  }
 }
