@@ -1,5 +1,6 @@
 import os
 import cv2
+import sys
 import caffe
 import utils
 import argparse
@@ -35,7 +36,7 @@ def load_position_maps(position_map_path):
      #--- LOAD SMOTHED POSITION MAPS
     position_maps = []
     for i in range(4):
-        path = os.path.join(position_map_path,'split_1_'+str(i)+'.pkl')
+        path = os.path.join(position_map_path,str(i)+'.pkl')
         position_maps.append(load_position_map(path,sigma=80))
     return position_maps
 
@@ -130,14 +131,12 @@ def show(net, position_maps):
     plt.show()
 
 if __name__ == "__main__":
-
-
     #--- Get params
     parser = argparse.ArgumentParser()
     parser.add_argument('--url', type=str, help='URL to classify', required=True)
-    parser.add_argument('--model', type=str, default='../../textmaps_download/v4_test.prototxt', help='Model definition in prototxt')
-    parser.add_argument('--weights',  type=str, default='../../textmaps_download/snapshot_split_1_10000.caffemodel', help='Initialize with pretrained model weights')
-    parser.add_argument('--position_maps_dir', type=str, default='../../textmaps_download/split_priors/', help='Number of iterations for training')
+    parser.add_argument('--model', type=str, default='../models/inference.prototxt', help='Model definition in prototxt')
+    parser.add_argument('--weights',  type=str, default='../models/weights/snapshot_split_1_10000.caffemodel', help='Initialize with pretrained model weights')
+    parser.add_argument('--position_maps_dir', type=str, default='../models/likelihoods/', help='Number of iterations for training')
     args = parser.parse_args()
     
     #-- Load params
@@ -148,7 +147,12 @@ if __name__ == "__main__":
 
 
     # DOWNLOAD PAGE
-    download_dir = download_page(url)
+    try:
+        download_dir = download_page(url)
+    except subprocess.CalledProcessError:
+        print "Download was not succesfull"
+        sys.exit(1)
+
     screenshot_path = os.path.join(download_dir,"screenshot.jpeg")
     dom_path = os.path.join(download_dir,"dom.json")
 

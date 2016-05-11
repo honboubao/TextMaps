@@ -9,11 +9,8 @@ fs = require('fs');
 
 /*
 Render given urls
-@param array of URLs to render
+@param URL to render
 @param output path
-@param prefix to use
-@param callbackPerUrl Function called after finishing each URL, including the last URL
-@param callbackFinal Function called after finishing everything
 */
 
 RenderUrl = function(url, output_path) {
