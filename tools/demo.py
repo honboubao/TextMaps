@@ -7,6 +7,7 @@ import argparse
 import tempfile
 import subprocess
 import numpy as np
+import _init_paths
 import matplotlib.pyplot as plt
 from utils import load_position_map
 from test import  get_probabilities_with_position
@@ -122,6 +123,7 @@ def show(net, position_maps):
     for cls in range(1,4):
         ind = max_boxes[cls]
         print probs[ind]
+    
         pred_box = boxes[ind,:]
         rect = plt.Rectangle((pred_box[0], pred_box[1]), pred_box[2] - pred_box[0],
             pred_box[3] - pred_box[1], fill=True, alpha=0.5,facecolor=colors[cls-1],

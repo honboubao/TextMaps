@@ -4,6 +4,7 @@ import utils
 import caffe
 import argparse
 import numpy as np
+import _init_paths
 
 def get_position_probabilities(position_maps, boxes):
     box_i = 0
