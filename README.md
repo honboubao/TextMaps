@@ -25,6 +25,6 @@ python demo.py --url [URL_TO_SOME_PRODUCT_PAGE]
 
 Data set
 ----------
-Data set will be available soon. Thank you for your patience
+Data set will be available after paper publication. Thank you for your patience.
 
 
