@@ -110,7 +110,7 @@ def show(net, position_maps):
 
     # get predictions with boxes
     predicted = net.blobs['prob'].data[:,0:4,0,0]
-    boxes = net.blobs['boxes'].data[:,1:5] 
+    boxes = net.blobs['boxes'].data[:,1:5].astype(int)
 
     # get probabilities with position likelihoods
     probs = get_probabilities_with_position(boxes, predicted, position_maps)
