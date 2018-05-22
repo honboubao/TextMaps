@@ -13,7 +13,7 @@ def my_tokenizer(s):
 
 def get_text_nodes(leaf_nodes, n_features):
     text_nodes = []
-    vectorizer = HashingVectorizer(n_features=n_features, tokenizer=my_tokenizer, non_negative=True, preprocessor=preprocess_string, norm=None)
+    vectorizer = HashingVectorizer(n_features=n_features, tokenizer=my_tokenizer, preprocessor=preprocess_string, norm=None)
 
     for node in leaf_nodes:
         #-- process text nodes
@@ -26,6 +26,7 @@ def get_text_nodes(leaf_nodes, n_features):
             text = node['value']
             text = ' '.join(text.lower().split())
             encoded_text = vectorizer.transform([text])
+            np.abs(encoded_text.data, encoded_text.data)
 
             if len(encoded_text.nonzero()[0]) > 0:
                 text_nodes.append((position,encoded_text,size))
